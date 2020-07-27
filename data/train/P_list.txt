@@ -1,0 +1,5 @@
+imgs/P/manta_DEL_P_chr1_1598413_1598580.png
+imgs/P/delly_DEL_P_chr1_1285454_1286794.png
+imgs/P/lumpy_DEL_P_chr1_12894755_12949593.png
+imgs/P/delly_DEL_P_chr1_14657686_14658485.png
+imgs/P/delly_DEL_P_chr3_101357566_101359747.png

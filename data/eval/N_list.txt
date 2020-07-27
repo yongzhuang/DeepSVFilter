@@ -1,0 +1,3 @@
+imgs/N/lumpy_DEL_N_chr5_5520822_7269125.png
+imgs/N/delly_DEL_N_chr1_1431270_1469644.png
+imgs/N/delly_DEL_N_chr1_1011692_1013928.png

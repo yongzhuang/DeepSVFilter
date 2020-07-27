@@ -1,0 +1,6 @@
+imgs/N/delly_DEL_N_chr1_2615227_2619233.png
+imgs/N/delly_DEL_N_chr1_2616580_2623967.png
+imgs/N/delly_DEL_N_chr1_2615160_2627370.png
+imgs/N/lumpy_DEL_N_chr1_2615850_2618777.png
+imgs/N/lumpy_DEL_N_chr1_1866374_1866978.png
+imgs/N/delly_DEL_N_chr1_1866376_1867039.png
