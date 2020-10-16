@@ -25,8 +25,11 @@ usage: DeepSVFilter preprocess [OPTIONS]
 --bed_path		<FILE>	SV BED file (required)  
 	
 --patch_size	<INT>	image patch size (224 or 299) (required)  
---output_imgs_dir	<DIR>	output image folder (required)  
+	
+--output_imgs_dir	<DIR>	output image folder (required  
+	
 --mean_insert_size	<INT>	mean of the insert size (optional)  
+	
 --sd_insert_size	<INT>	standard deviation of the insert size (optional)  
 
 **2. augmentate**
