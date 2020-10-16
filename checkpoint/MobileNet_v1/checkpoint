@@ -1,2 +1,6 @@
- model_checkpoint_path: "pretrained_M1-0"
-all_model_checkpoint_paths: "pretrained_M1-0"
+model_checkpoint_path: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-9441"
+all_model_checkpoint_paths: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-2098"
+all_model_checkpoint_paths: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-3147"
+all_model_checkpoint_paths: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-6294"
+all_model_checkpoint_paths: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-8392"
+all_model_checkpoint_paths: "/home/Cworker04/project/source/DeepSVFilter/checkpoint/MobileNet_v1/DeepSVFilter_MobileNet_v1-9441"

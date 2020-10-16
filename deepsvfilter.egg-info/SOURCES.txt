@@ -1,0 +1,13 @@
+README.md
+setup.py
+deepsvfilter/DeepSVFilter.py
+deepsvfilter/__init__.py
+deepsvfilter/augmentate.py
+deepsvfilter/bed2image.py
+deepsvfilter/model.py
+deepsvfilter/sv_image.py
+deepsvfilter.egg-info/PKG-INFO
+deepsvfilter.egg-info/SOURCES.txt
+deepsvfilter.egg-info/dependency_links.txt
+deepsvfilter.egg-info/requires.txt
+deepsvfilter.egg-info/top_level.txt

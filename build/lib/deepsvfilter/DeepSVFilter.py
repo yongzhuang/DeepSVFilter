@@ -1,0 +1,317 @@
+from __future__ import print_function
+import sys
+import os
+import random
+import tensorflow as tf
+from PIL import Image
+import numpy as np
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+rootPath = os.path.split(curPath)[0]
+sys.path.append(rootPath)
+import argparse
+from glob import glob
+from model import *
+from bed2image import *
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+
+def preprocess(args):
+    trans2img(args.bam_path, args.sv_type, args.bed_path, args.output_imgs_dir, args.patch_size)
+
+def augmentate(args):
+    data_augmentation(args.image_path_file,args.patch_size,args.output_imgs_dir)
+
+
+def train(args):
+    _model_name = "MobileNet_v1"
+    if args.model_type == "IR_v2":
+        _model_name = "Inception_ResNet_v2"
+    elif args.model_type == "M1":
+        _model_name = "MobileNet_v1"
+    elif args.model_type == "M2_1.0":
+        _model_name = "MobileNet_v2_1.0"
+    elif args.model_type == "M2_1.4":
+        _model_name = "MobileNet_v2_1.4"
+    elif args.model_type == "NAS":
+        _model_name = "NASNet_A_Mobile"
+    elif args.model_type == "PNAS":
+        _model_name = "PNASNet_5_Mobile"
+    else:
+        print("input model type", args.model_type, "not exisited")
+        exit(1)
+    if args.model_type == "IR_v2":
+        patch_size = 299
+    else:
+        patch_size = 224
+
+    if(args.use_gpu==0):
+        print("[*] CPU\n")
+        config = None
+        if(args.num_cores):
+            print("num of CPU cores:"+str(args.num_cores))
+            config = tf.ConfigProto(device_count = {'CPU': args.num_cores}, intra_op_parallelism_threads=1, inter_op_parallelism_threads=1,log_device_placement=True)
+        else:
+            config = tf.ConfigProto(allow_soft_placement=True)
+        with tf.Session(config=config) as sess:
+    	    cnn_model = model(sess, is_training=True, model_name=_model_name)
+    	    run_training(cnn_model, _model_name, patch_size)
+    
+    if(args.use_gpu==1):
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_idx
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_mem)
+        with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+            cnn_model = model(sess, is_training=True, model_name=_model_name)
+            run_training(cnn_model, _model_name, patch_size)
+
+def predict(args):
+    _model_name = "MobileNet_v1"
+    if args.model_type == "IR_v2":
+        _model_name = "Inception_ResNet_v2"
+    elif args.model_type == "M1":
+        _model_name = "MobileNet_v1"
+    elif args.model_type == "M2_1.0":
+        _model_name = "MobileNet_v2_1.0"
+    elif args.model_type == "M2_1.4":
+        _model_name = "MobileNet_v2_1.4"
+    elif args.model_type == "NAS":
+        _model_name = "NASNet_A_Mobile"
+    elif args.model_type == "PNAS":
+        _model_name = "PNASNet_5_Mobile"
+    else:
+        print("input model type", args.model_type, "not exisited")
+        exit(1)
+    if args.model_type == "IR_v2":
+        patch_size = 299
+    else:
+        patch_size = 224
+    #os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_idx
+    #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_mem)
+    config = tf.ConfigProto(allow_soft_placement=True)
+
+    with tf.Session(config=config) as sess:
+        cnn_model = model(sess, is_training=True, model_name=_model_name)
+        run_prediction2(cnn_model, _model_name, patch_size)
+
+
+def load_images_inception(file, patch_size):
+    im = Image.open(file)
+    w, h = im.size
+    if w != patch_size or h != patch_size:
+        im = im.resize((patch_size, patch_size), Image.ANTIALIAS)
+    im = np.array(im, dtype="float32") / 127.5 - 1
+
+    # im_c = np.zeros((args.patch_size, args.patch_size, 3), dtype="float32")
+    # im_c[:, :, :1] = im[:, :, :1]  # c1 only
+    # im_c[:, :, :2] = im[:, :, :2]  # c12 only
+    # im_c[:, :, :1] = im[:, :, :1]  # c13 only
+    # im_c[:, :, 2:] = im[:, :, 2:]  # c13 only
+
+    return im
+
+def run_training(model, model_name, patch_size):
+    if not os.path.exists(os.path.join(args.ckpt_dir, model_name)):
+        os.makedirs(os.path.join(args.ckpt_dir, model_name))
+    if not os.path.exists(args.eval_result_dir):
+        os.makedirs(args.eval_result_dir)
+
+    lr = (args.start_lr / 30.0) * np.ones([args.epoch])
+    lr[5:] = args.start_lr / 50.0
+    # ********************************************load train data****************************************
+
+    #train_p_path = os.path.join(args.train_dir, 'P_list.txt')
+    train_p_f = open(args.pos_train_file, 'r')
+    train_p_names = [pair_line.rstrip('\n') for pair_line in train_p_f]
+
+    #train_n_path = os.path.join(args.train_dir, 'N_list.txt')
+    train_n_f = open(args.neg_train_file, 'r')
+    train_n_names = [pair_line.rstrip('\n') for pair_line in train_n_f]
+
+    print("[*] Number of training positive data:", len(train_p_names))
+    print("[*] Number of training negative data:", len(train_n_names))
+
+    #assert len(train_p_names) == len(train_n_names)  # 10000
+    print('[*] Number of training data: %d' % (len(train_p_names) + len(train_n_names)))
+
+    train_im = []
+    train_label = []
+
+    count = 1
+    for line in train_p_names:
+        # print("[*] Loading training P image [", count, '/', len(train_p_names), ']', end='\r')
+        p_path = line.rstrip('\n')
+        p_im = load_images_inception(p_path, patch_size)
+        train_im.append(p_im)
+        train_label.append([1., 0.])
+        count += 1
+
+    count = 1
+    for line in train_n_names:
+        # print("[*] Loading training N image [", count, '/', len(train_n_names), ']', end='\r')
+        n_path = line.rstrip('\n')
+        n_im = load_images_inception(n_path, patch_size)
+        train_im.append(n_im)
+        train_label.append([0., 1.])
+        count += 1
+
+    tmp = list(zip(train_im, train_label))
+    random.shuffle(tmp)
+    train_im, train_label = zip(*tmp)
+
+    # ********************************************load evaluation data****************************************
+    eval_p_names, eval_n_names = [], []
+
+    #eval_p_path = os.path.join(args.eval_dir, 'P_list.txt')
+    eval_p_f = open(args.pos_eval_file, 'r')
+    eval_p_names = [pair_line.rstrip('\n') for pair_line in eval_p_f]
+    random.shuffle(eval_p_names)
+
+    #eval_n_path = os.path.join(args.eval_dir, 'N_list.txt')
+    eval_n_f = open(args.neg_eval_file, 'r')
+    eval_n_names = [pair_line.rstrip('\n') for pair_line in eval_n_f]
+    random.shuffle(eval_n_names)
+
+    print("[*] Number of evaluation positive data:", len(eval_p_names))
+    print("[*] Number of evaluation negative data:", len(eval_n_names))
+
+    #assert len(eval_p_names) == len(eval_n_names)  # 5000
+    print('[*] Number of evaluation data: %d' % (len(eval_p_names) + len(eval_n_names)))
+
+    eval_im = []
+    eval_label = []
+
+    count = 1
+    for line in eval_p_names:
+        # print("[*] Loading evaluation P image [", count, '/', len(eval_p_names), ']', end='\r')
+        p_path = line.rstrip('\n')
+        p_im = load_images_inception(p_path, patch_size)
+        eval_im.append(p_im)
+        eval_label.append([1., 0.])
+        count += 1
+
+    count = 1
+    for line in eval_n_names:
+        # print("[*] Loading evaluation N image [", count, '/', len(eval_n_names), ']', end='\r')
+        n_path = line.rstrip('\n')
+        n_im = load_images_inception(n_path, patch_size)
+        eval_im.append(n_im)
+        eval_label.append([0., 1.])
+        count += 1
+
+    tmp = list(zip(eval_im, eval_label))
+    random.shuffle(tmp)
+    eval_im, eval_label = zip(*tmp)
+
+    model.train(train_im, train_label, eval_im, eval_label,
+                batch_size=args.batch_size, patch_size=patch_size,
+                epoch=args.epoch, eval_every_epoch=args.eval_every_epoch,
+                lr=lr, ckpt_dir=os.path.join(args.ckpt_dir, model_name),
+                summary_dir=os.path.join(args.summary_dir, model_name))
+
+def run_prediction2(model, model_name, patch_size):
+    
+    if not os.path.exists(args.test_result_dir):
+        os.makedirs(args.test_result_dir)
+
+    test_path = args.test_file
+    test_f = open(test_path, 'r')
+    test_names = [pair_line.rstrip('\n') for pair_line in test_f]
+
+    test_im = []
+    #test_names = []
+
+    count = 1
+    for line in test_names:
+        path = line.rstrip('\n')
+        im = load_images_inception(path, patch_size)
+        test_im.append(im)
+        count += 1
+    print(len(test_im))
+    print(len(test_names))
+    tmp = list(zip(test_im, test_names))
+    random.shuffle(tmp)
+    test_im, test_names = zip(*tmp)
+    model.predict(test_im, test_names, patch_size=patch_size, ckpt_dir=os.path.join(args.ckpt_dir, model_name),
+                  res_dir=args.test_result_dir)
+
+
+parser = argparse.ArgumentParser(description='')
+subparsers = parser.add_subparsers(help='preprocess, augmentate, train or predict')
+
+parser_preprocess = subparsers.add_parser('preprocess', help='generate SV images')
+parser_train = subparsers.add_parser('train', help='train the classification model')
+parser_predict = subparsers.add_parser('predict', help='make predications for candidate SVs')
+parser_augmentate = subparsers.add_parser('augmentate', help='perform data augmentation')
+
+# preprocess
+parser_preprocess.add_argument('--sv_type', dest='sv_type', required=True, help='SV type')
+parser_preprocess.add_argument('--bam_path', dest='bam_path', required=True, help='BAM file')
+parser_preprocess.add_argument('--bed_path', dest='bed_path', required=True, help='SV BED file')
+parser_preprocess.add_argument('--patch_size', dest='patch_size', type=int, default=224, help='image patch size (224 or 299)')
+parser_preprocess.add_argument('--output_imgs_dir', dest='output_imgs_dir', required=True,
+                               help='output image folder')
+
+parser_preprocess.set_defaults(func=preprocess)
+
+# augmentate
+parser_augmentate.add_argument('--output_imgs_dir', dest='output_imgs_dir', required=True,help='output image folder')
+
+parser_augmentate.add_argument('--image_path_file', dest='image_path_file', required=True,help='input typical true or false image folder')
+parser_augmentate.add_argument('--patch_size', dest='patch_size', type=int, default=224, help='image patch size (224 or 299)')
+
+parser_preprocess.set_defaults(func=augmentate)
+
+# train
+parser_train.add_argument('--sv_type', dest='sv_type', required=True, help='DEL only')
+parser_train.add_argument('--use_gpu', dest='use_gpu', type=int, default=0, help='gpu flag, 1 for GPU and 0 for CPU')
+parser_train.add_argument('--gpu_idx', dest='gpu_idx', default="0", help='GPU idx')
+parser_train.add_argument('--gpu_mem', dest='gpu_mem', type=float, default=0.5, help="0 to 1, gpu memory usage")
+
+parser_train.add_argument('--model', dest='model_type', default='M1',
+                          help='M1(for MobileNet_v1) or M2_1.0(for MobileNet_v2_1.0) or M2_1.4(for MobileNet_v2_1.4) '
+                               'or NAS(for NASNet_A_Mobile) or PNAS(for PNASNet_5_Mobile) '
+                               'or IR_v2(for Inception_ResNet_v2)')
+parser_train.add_argument('--checkpoint_dir', dest='ckpt_dir', default='checkpoint/', help='checkpoint folder')
+
+
+parser_train.add_argument('--epoch', dest='epoch', type=int, default=13, help='number of total epoches')
+parser_train.add_argument('--batch_size', dest='batch_size', type=int, default=16,
+                          help='number of samples in one batch')
+parser_train.add_argument('--start_lr', dest='start_lr', type=float, default=0.001,
+                          help='initial learning rate for adam')
+parser_train.add_argument('--eval_every_epoch', dest='eval_every_epoch', default=1,
+                          help='evaluating and saving checkpoints every #  epoch')
+parser_train.add_argument('--pos_train_file', dest='pos_train_file', required=True, help='path file of positive SV images used for training')
+parser_train.add_argument('--neg_train_file', dest='neg_train_file', required=True, help='path file of negative SV images used for training')
+parser_train.add_argument('--pos_eval_file', dest='pos_eval_file', required=True, help='path file of positive SV images used for validation')
+parser_train.add_argument('--neg_eval_file', dest='neg_eval_file', required=True, help='path file of negative SV images used for validation')
+parser_train.add_argument('--eval_result_dir', dest='eval_result_dir', required=True,
+                          help='validation result')
+parser_train.add_argument('--summary_dir', dest='summary_dir', required=True,
+                          help='tensorboard summary')
+parser_train.add_argument('--num_cores', dest='num_cores', type=int,
+                          help='maximum number of CPU cores')
+
+parser_train.set_defaults(func=train)
+
+# predict
+parser_predict.add_argument('--sv_type', dest='sv_type', required=True, help='SV type')
+parser_predict.add_argument('--use_gpu', dest='use_gpu', type=int, default=0, help='GPU flag, 1 for GPU and 0 for CPU')
+parser_predict.add_argument('--gpu_idx', dest='gpu_idx', default="0", help='GPU idx')
+parser_predict.add_argument('--gpu_mem', dest='gpu_mem', type=float, default=0.5, help='0 to 1, gpu memory usage')
+parser_predict.add_argument('--model', dest='model_type', default='M1',
+                            help='M1(for MobileNet_v1) or M2_1.0(for MobileNet_v2_1.0) or M2_1.4(for MobileNet_v2_1.4) '
+                                 'or NAS(for NASNet_A_Mobile) or PNAS(for PNASNet_5_Mobile) '
+                                 'or IR_v2(for Inception_ResNet_v2)')
+parser_predict.add_argument('--checkpoint_dir', dest='ckpt_dir', default='checkpoint/',
+                            help='checkpoint folder')
+parser_predict.add_argument('--test_file', dest='test_file', required=True, help='SV image path file', )
+parser_predict.add_argument('--test_result_dir', dest='test_result_dir', required=True, help='SV filtering results')
+
+
+parser_predict.set_defaults(func=predict)
+
+args = parser.parse_args()
+
+args.func(args)

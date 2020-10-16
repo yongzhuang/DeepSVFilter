@@ -1,0 +1,246 @@
+#!/usr/bin/env python
+
+import sys
+
+import argparse
+
+class interval:
+    
+    def __init__(self, chrom, start, end, type):  
+        self.chrom = chrom 
+        self.start = start  
+        self.end = end
+        self.type = type
+        
+    def get_chrom(self):
+        return self.chrom
+    
+    def get_start(self):
+        return self.start
+    
+    def get_end(self):
+        return self.end
+    
+    def get_type(self):
+        return self.type
+
+    def get_length(self):
+        return self.end - self.start + 1
+    
+    def is_overlap(self, other):
+        if self.chrom != other.get_chrom() or self.type != other.get_type():
+            return False
+        elif self.start > other.get_end() or self.end < other.get_start():
+            return False
+        else:
+            return True
+    def is_overlap_by_percent(self, other, percent):
+        if self.chrom != other.get_chrom():
+            return False
+        if self.type!='CNV' and self.type != other.get_type():
+            return False
+        if self.start > other.get_end() or self.end < other.get_start():
+            return False
+        if self.start >= other.get_start(): 
+            if self.end <= other.get_end():
+                overlap = self.get_length()
+            else:
+                overlap = other.get_end() - self.start + 1
+            if float(overlap) / float(self.get_length()) >= percent and float(overlap) / float(other.get_length()) >= percent:
+                return True
+            else:
+                return False
+        if self.start < other.get_start():
+            if other.get_end() <= self.end:
+                overlap = other.get_length()
+            else:
+                overlap = self.end - other.get_start() + 1
+            if float(overlap) / float(self.get_length()) >= percent and float(overlap) / float(other.get_length()) >= percent:               
+                return True
+            else:
+                return False
+    
+def parse_delly(input_file, sv_type, length=0):
+    records=[]
+    f = open(input_file, 'r')
+    chroms=["1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17",
+            "18", "19", "20", "21","22","chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
+            "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17",
+            "chr18", "chr19", "chr20", "chr21","chr22"]
+    for line in f:
+        if line.startswith('#'):
+            continue
+        record = line.split()
+        chrom = record[0]
+        type = record[4]
+        start=int(record[1])
+        info=record[7].split(';')
+        end=0
+        for item in info:
+            if item.startswith('END='):
+                end=int(item[4:])
+        #if record[9].split(':')[0]!='0/0':
+        output_type ='<'+sv_type+'>'
+        if type==output_type and chrom in chroms:
+            tmp = interval(chrom, start, end, sv_type)
+            if tmp.get_length()>=length:
+                records.append(tmp)
+    f.close()
+    return records
+
+def parse_manta(input_file, sv_type, length=0):
+    records=[]
+    f = open(input_file, 'r')
+    chroms=["1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17",
+            "18", "19", "20", "21","22"]
+    for line in f:
+        if line.startswith('#'):
+            continue
+        record = line.split()
+        chrom = record[0]
+        start=int(record[1])
+        info=record[7].split(';')
+        end=0
+        for item in info:
+            if item.startswith('END='):
+                end=int(item[4:])
+            if item.startswith('SVTYPE='):
+                type=item[7:]        
+        if record[9].split(':')[0]!='0/0':
+            if chrom in chroms and type==sv_type:
+                tmp = interval(chrom, start, end, sv_type)
+                if tmp.get_length()>=length:
+                    records.append(tmp)
+    f.close()
+    return records
+
+
+def parse_lumpy(input_file, sv_type, length=0):
+    records=[]
+    f = open(input_file, 'r')
+    chroms=["1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17",
+            "18", "19", "20", "21","22"]
+    for line in f:
+        if line.startswith('#'):
+            continue
+        record = line.split()
+        chrom = record[0]
+        start=int(record[1])
+        info=record[7].split(';')
+        end=0
+        type=''
+        for item in info:
+            if item.startswith('END='):
+                end=int(item[4:])
+            if item.startswith('SVTYPE='):
+                type=item[7:]        
+        if chrom in chroms and type == sv_type:
+            tmp = interval(chrom, start, end, sv_type)
+            if tmp.get_length()>=length:
+                records.append(tmp)
+    f.close()
+    return records
+
+def parse_giab(input_file, sv_type, length=0):
+    records=[]
+    f = open(input_file, 'r')
+    chroms=["1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17",
+            "18", "19", "20", "21","22"]
+    for line in f:
+        if line.startswith('#'):
+            continue
+        record = line.split()
+        chrom = record[0]
+        start=int(record[1])
+        info=record[7].split(';')
+        end=0
+        type=''
+        for item in info:
+            if item.startswith('END='):
+                end=int(item[4:])
+            if item.startswith('SVTYPE='):
+                type=item[7:]
+        if chrom in chroms and type == sv_type:
+            tmp = interval(chrom, start, end, sv_type)
+            if tmp.get_length()>=length:
+                records.append(tmp)
+    f.close()
+    return records
+
+def extract_typical_sv(goldstandard, callset, output_prefix):
+    f1 = open(output_prefix+'.P', 'w')
+    f2 = open(output_prefix + '.N', 'w')
+    for interval1 in callset:
+        tag=False
+        is_true_typical=0
+        is_false_typical=1
+        for interval2 in goldstandard:
+            if interval1.is_overlap_by_percent(interval2, 0.9):
+                tag = True
+                if abs(interval1.get_start()-interval2.get_start()) < 158 and abs(interval1.get_end()-interval2.get_end())< 158:
+                    is_true_typical=1
+            else:
+                if(abs(interval1.get_start()-interval2.get_start()) < 158 or abs(interval1.get_end()-interval2.get_end())< 158):
+                    is_false_typical=0
+        if tag==False:
+            f2.write(interval1.get_chrom() + "\t" + str(interval1.get_start()) + "\t" + str(interval1.get_end()) + '\t' + interval1.get_type() +'\t' +str(is_false_typical)+"\n")
+        if tag==True:
+            f1.write(interval1.get_chrom()+"\t"+str(interval1.get_start())+"\t"+str(interval1.get_end())+'\t'+interval1.get_type()+'\t'+str(is_true_typical)+"\n")
+    f1.close()
+    f2.close()
+
+def exclude(svset,excludeFile):
+    excludeRecords=[]
+    f = open(excludeFile, 'r')
+    for line in f:
+        record = line.split()
+        chrom = record[0]
+        start=int(record[1])
+        end=int(record[2])
+        tmp = interval(chrom, start, end, 'DEL')
+        excludeRecords.append(tmp)
+    records=[]
+    for interval1 in svset:
+        tag=False
+        for interval2 in excludeRecords:
+            if interval1.is_overlap(interval2):
+                tag=True
+                break
+        if tag== False:
+            records.append(interval1)
+    return records
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('--sv_type', dest='sv_type', required=True, help='DEL, INS or DUP')
+    parser.add_argument('--vcf_file', dest='vcf_file', required=True, help='vcf file')
+    parser.add_argument('--bed_file', dest='bed_file', required=True, help='bed file')
+    parser.add_argument('--tool_name', dest='tool_name', required=True, help='delly,manta,lumpy')
+    parser.add_argument('--ground_truth_file', dest='ground_truth_file', required=True, help='grouth truth vcf file')
+    parser.add_argument('--exclude', dest='exclude', help='exclude bed file')
+    parser.add_argument('--length', dest='length', default=100, help='sv length')
+    args = parser.parse_args()
+    sv_records=[]
+    if (args.tool_name=='delly'):
+        sv_records=parse_delly(args.vcf_file, args.sv_type, args.length)
+    elif (args.tool_name=='manta'):
+        sv_records=parse_manta(args.vcf_file, args.sv_type, args.length)
+    elif (args.tool_name=='lumpy'):
+        sv_records=parse_lumpy(args.vcf_file, args.sv_type, args.length)
+    else:
+        print("Unknown tool")
+    ground_truth_records=parse_giab(args.ground_truth_file, args.sv_type, args.length)    
+    if args.exclude is not None:
+        sv_records=exclude(sv_records,args.exclude)
+        ground_truth_records=exclude(ground_truth_records,args.exclude)
+    print(len(sv_records))
+    print(len(ground_truth_records))
+    extract_typical_sv(ground_truth_records, sv_records, args.bed_file)
+
+    
+
