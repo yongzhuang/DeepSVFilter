@@ -3,8 +3,9 @@
 DeepSVFilter is a deep learning based tool designed to filter false positive structural variants (SVs) obtained by any computational approaches from short read whole genome sequencing data. It can be used as either a stand-alone tool to filter SVs or coupled with commonly used SV detection tool (Delly, Lumpy, Manta et al.) to improve specificity.
 
 ## Installation
-# Dependencies: tensorflow 1.15.0, matplotlib==3.1.0, numpy<2.0,>=1.16.0, opencv-python==3.1.0.4, Pillow==7.2.0, pysam==0.15.4, scikit-learn==0.19.2, scipy
-# Install from github (requires Python 3.6.* or newer)
+### Dependencies
+tensorflow 1.15.0, matplotlib==3.1.0, numpy<2.0,>=1.16.0, opencv-python==3.1.0.4, Pillow==7.2.0, pysam==0.15.4, scikit-learn==0.19.2, scipy
+### Install from github (requires Python 3.6.* or newer)
 1. https://github.com/yongzhuang/DeepSVFilter.git
 2. cd DeepSVFilter
 3. pip install .
