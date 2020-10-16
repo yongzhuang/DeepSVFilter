@@ -18,7 +18,7 @@ usage: DeepSVFilter [OPTIONS]
 
 usage: DeepSVFilter preprocess [OPTIONS]  
 
---sv_type		<STR>	SV type (DEL or DUP) (required)  
+--sv_type	<STR>	SV type (DEL or DUP) (required)  
 --bam_path		<FILE>	BAM file (required)  
 --bed_path		<FILE>	SV BED file (required)  
 --patch_size	<INT>	image patch size (224 or 299) (required)  
