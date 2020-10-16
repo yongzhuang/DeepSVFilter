@@ -15,21 +15,15 @@ usage: DeepSVFilter [OPTIONS]
 
 **1. preprocess**
       This option is used to generate SV images for candidate SVs.
-      usage: DeepSVFilter preprocess [OPTIONS]
-      
---sv_type	<STR>	SV type (DEL or DUP) (required)  
---bam_path		<FILE>	BAM file (required)  
---bed_path		<FILE>	SV BED file (required)  
---patch_size	<INT>	image patch size (224 or 299) (required)  
---output_imgs_dir	<DIR>	output image folder (required)  
---mean_insert_size	<INT>	mean of the insert size (optional)  
---sd_insert_size	<INT>	standard deviation of the insert size (optional) 
 
 usage: DeepSVFilter preprocess [OPTIONS]  
 
 --sv_type	<STR>	SV type (DEL or DUP) (required)  
+	
 --bam_path		<FILE>	BAM file (required)  
+	
 --bed_path		<FILE>	SV BED file (required)  
+	
 --patch_size	<INT>	image patch size (224 or 299) (required)  
 --output_imgs_dir	<DIR>	output image folder (required)  
 --mean_insert_size	<INT>	mean of the insert size (optional)  
