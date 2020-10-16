@@ -118,7 +118,7 @@ usage: extract_typical_SV [OPTIONS]
 
 ## Example
 
- 1. run preprocess.sh to get candidate SV images  
+**1. run preprocess.sh to get candidate SV images**  
 
  DeepSVFilter preprocess \  
         --sv_type=DEL \  
@@ -127,13 +127,13 @@ usage: extract_typical_SV [OPTIONS]
         --bed_path=./data/example.bed \  
         --output_imgs_dir=./result/images  
 
- 2. run predict.sh to make predictions for candidate SVs  
+**2. run predict.sh to make predictions for candidate SVs**  
 
  DeepSVFilter predict \  
- 		--sv_type DEL \  
- 		--test_file ./result/images/IMG_PATH.txt \  
- 		--checkpoint_dir ./checkpoint \  
- 		--test_result_dir ./result/filteredSVs  
+ 	--sv_type DEL \  
+ 	--test_file ./result/images/IMG_PATH.txt \  
+ 	--checkpoint_dir ./checkpoint \  
+ 	--test_result_dir ./result/filteredSVs  
 
 ## Running Time and Memory Requirements
 
@@ -141,7 +141,7 @@ usage: extract_typical_SV [OPTIONS]
 
 2. The predicting time is less than 1 hour for a typical human genome (about 5000 candidate SVs).  
 
-3. All analysis in the manuscript were run on a 256GB memory server.  
+3. All analysis in the manuscript were run on a 384GB memory server.  
 
 ## Contact 
    yongzhuang.liu@hit.edu.cn
