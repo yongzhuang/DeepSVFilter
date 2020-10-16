@@ -15,7 +15,7 @@ usage: DeepSVFilter [OPTIONS]
 
 **1. preprocess**
       This option is used to generate SV images for candidate SVs.
-
+···
 usage: DeepSVFilter preprocess [OPTIONS]  
 
 --sv_type	<STR>	SV type (DEL or DUP) (required)  
