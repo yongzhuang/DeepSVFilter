@@ -33,7 +33,7 @@ usage: DeepSVFilter [OPTIONS]
 		--sd_insert_size	<INT>	standard deviation of the insert size (optional)  
 
 **2. augmentate**
-      This option is used to do data augmentation for typical SVs.  
+      This option is used to do data augmentation for typical SVs. Note that this step is optional.
 
 	usage: DeepSVFilter augmentate [OPTIONS]   
 
