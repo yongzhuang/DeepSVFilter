@@ -145,28 +145,28 @@ usage: DeepSVFilter [OPTIONS]
 	
 **3. augmentate example**
 
- DeepSVFilter augmentate \ 
-    --image_path_file /path/to/IMG_PATH.txt  
-    --patch_size 299
+ DeepSVFilter augmentate \   
+    --image_path_file /path/to/IMG_PATH.txt \    
+    --patch_size 299 \  
     --output_imgs_dir /path/to/output_imgs_dir
     
 **3. train example**
 
- DeepSVFilter train \ 
-        --use_gpu=0 \ 
-        --sv_type=DEL \ 
-        --model=M1 \
-        --epoch=13 \ 
-        --batch_size=16 \ 
-        --start_lr=0.001 \ 
-        --eval_every_epoch=1 \ 
-        --checkpoint_dir=/path/to/checkpoint \ 
-        --pos_train_file=/path/to/TP_TRAIN.txt \ 
-        --neg_train_file=/path/to/FP_TRAIN.txt \ 
-        --pos_eval_file=/path/to/TP_EVAL.txt \ 
-        --neg_eval_file=/path/to/FP_EVAL.txt \  
-        --eval_result_dir=/path/to/eval_PNAS_results \
-        --summary_dir=/paht/to/M1_summary/ \
+ DeepSVFilter train \   
+        --use_gpu=0 \   
+        --sv_type=DEL \   
+        --model=M1 \  
+        --epoch=13 \   
+        --batch_size=16 \     
+        --start_lr=0.001 \     
+        --eval_every_epoch=1 \   
+        --checkpoint_dir=/path/to/checkpoint \   
+        --pos_train_file=/path/to/TP_TRAIN.txt \   
+        --neg_train_file=/path/to/FP_TRAIN.txt \  
+        --pos_eval_file=/path/to/TP_EVAL.txt \   
+        --neg_eval_file=/path/to/FP_EVAL.txt \    
+        --eval_result_dir=/path/to/eval_PNAS_results \  
+        --summary_dir=/paht/to/M1_summary/  
 
 ## Running Time and Memory Requirements
 
