@@ -11,7 +11,7 @@ setup(
 		'matplotlib==3.1.0',
 		'numpy<2.0,>=1.16.0',
                 'opencv-python==3.1.0.4',
-                'Pillow==7.2.0',
+                'Pillow==8.3.2',
 		'pysam==0.15.4',
                 'scikit-learn==0.19.2',
                 'scipy',
