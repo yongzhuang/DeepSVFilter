@@ -10,7 +10,7 @@ setup(
                 'tensorflow-gpu==1.15.0',
 		'matplotlib==3.1.0',
 		'numpy<2.0,>=1.16.0',
-                'opencv-python==3.1.0.4',
+                'opencv-python==4.2.0.32',
                 'Pillow==7.2.0',
 		'pysam==0.15.4',
                 'scikit-learn==0.19.2',
