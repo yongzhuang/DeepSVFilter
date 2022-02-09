@@ -7,7 +7,7 @@ setup(
 	scripts=['deepsvfilter/DeepSVFilter','deepsvfilter/vcf2bed','deepsvfilter/extract_typical_SVs'],
 	
         install_requires=[
-                'tensorflow-gpu==1.15.0',
+                'tensorflow-gpu==2.5.3',
 		'matplotlib==3.1.0',
 		'numpy<2.0,>=1.16.0',
                 'opencv-python==3.1.0.4',
